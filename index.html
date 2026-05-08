@@ -1,0 +1,23 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta http-equiv="Content-Security-Policy"
+          content="default-src 'self';
+                   script-src 'self' 'unsafe-inline' 'unsafe-eval' https://maps.googleapis.com https://accounts.google.com https://apis.google.com;
+                   style-src 'self' 'unsafe-inline' https://fonts.googleapis.com;
+                   font-src 'self' https://fonts.gstatic.com;
+                   img-src 'self' data: https: blob:;
+                   connect-src 'self' https://generativelanguage.googleapis.com https://maps.googleapis.com https://places.googleapis.com https://www.googleapis.com https://accounts.google.com https://oauth2.googleapis.com;
+                   frame-src https://accounts.google.com;
+                   worker-src 'self' blob:;">
+    <meta name="description" content="TripBuddy - AI-powered travel planning assistant using Google Gemini and Maps">
+    <title>TripBuddy - AI Travel Planner</title>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>
