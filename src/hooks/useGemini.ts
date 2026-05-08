@@ -51,20 +51,23 @@ export function useGemini(): UseGeminiReturn {
         let fullText = ''
         let itinerary: Itinerary | null = null
 
-        for await (const chunk of generator) {
+        // Iterate through the generator
+        let result = await generator.next()
+        while (!result.done) {
           if (abortControllerRef.current?.signal.aborted) {
             return null
           }
           
-          // Check if this is the final result (Itinerary object) or a chunk (string)
-          if (typeof chunk === 'string') {
-            fullText += chunk
-            setStreamingText(fullText)
-          } else {
-            // This is the final itinerary
-            itinerary = chunk as Itinerary
-          }
+          // Yielded chunks are strings
+          const chunk = result.value
+          fullText += chunk
+          setStreamingText(fullText)
+          
+          result = await generator.next()
         }
+        
+        // The return value is the final itinerary
+        itinerary = result.value
 
         setIsLoading(false)
         setStreamingText('')
@@ -73,6 +76,13 @@ export function useGemini(): UseGeminiReturn {
         if (abortControllerRef.current?.signal.aborted) {
           return null
         }
+
+        console.error('Error in generateItinerary:', err)
+        console.error('Error details:', {
+          name: err instanceof Error ? err.name : 'Unknown',
+          message: err instanceof Error ? err.message : String(err),
+          stack: err instanceof Error ? err.stack : undefined
+        })
 
         const errorMessage =
           err instanceof GeminiError

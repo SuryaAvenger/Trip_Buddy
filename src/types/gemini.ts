@@ -60,7 +60,7 @@ export const DEFAULT_GEMINI_CONFIG: GeminiPromptConfig = {
   temperature: 0.7,
   topK: 40,
   topP: 0.95,
-  maxOutputTokens: 8192,
+  maxOutputTokens: 32768, // Increased to allow complete itinerary generation
 }
 
 export class GeminiError extends Error {

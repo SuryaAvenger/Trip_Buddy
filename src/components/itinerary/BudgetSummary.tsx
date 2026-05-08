@@ -16,15 +16,21 @@ const CATEGORY_CONFIG = {
 }
 
 export function BudgetSummary({ budget }: BudgetSummaryProps) {
+  // Safety check for budget object
+  if (!budget) {
+    return null
+  }
+
   const categories = [
-    { key: 'accommodation' as const, amount: budget.accommodation },
-    { key: 'food' as const, amount: budget.food },
-    { key: 'activities' as const, amount: budget.activities },
-    { key: 'transport' as const, amount: budget.transport },
-    { key: 'miscellaneous' as const, amount: budget.miscellaneous },
+    { key: 'accommodation' as const, amount: budget.accommodation || 0 },
+    { key: 'food' as const, amount: budget.food || 0 },
+    { key: 'activities' as const, amount: budget.activities || 0 },
+    { key: 'transport' as const, amount: budget.transport || 0 },
+    { key: 'miscellaneous' as const, amount: budget.miscellaneous || 0 },
   ]
 
-  const maxAmount = Math.max(...categories.map((c) => c.amount))
+  const maxAmount = Math.max(...categories.map((c) => c.amount), 0)
+  const total = budget.total || categories.reduce((sum, cat) => sum + cat.amount, 0)
 
   return (
     <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
@@ -43,7 +49,7 @@ export function BudgetSummary({ budget }: BudgetSummaryProps) {
         <div className="flex justify-between items-center">
           <span className="text-sm font-medium text-gray-700">Total Estimated Cost</span>
           <span className="text-2xl font-bold text-indigo-600">
-            {formatCurrency(budget.total, budget.currency)}
+            {formatCurrency(total, budget.currency || 'USD')}
           </span>
         </div>
       </div>
@@ -53,7 +59,7 @@ export function BudgetSummary({ budget }: BudgetSummaryProps) {
         {categories.map(({ key, amount }) => {
           const config = CATEGORY_CONFIG[key]
           const Icon = config.icon
-          const percentage = maxAmount > 0 ? (amount / budget.total) * 100 : 0
+          const percentage = total > 0 ? (amount / total) * 100 : 0
 
           return (
             <div key={key} className="space-y-2">
@@ -92,7 +98,7 @@ export function BudgetSummary({ budget }: BudgetSummaryProps) {
               let currentAngle = 0
               return categories.map(({ key, amount }) => {
                 const config = CATEGORY_CONFIG[key]
-                const percentage = (amount / budget.total) * 100
+                const percentage = total > 0 ? (amount / total) * 100 : 0
                 const angle = (percentage / 100) * 360
                 const radius = 80
                 const centerX = 100

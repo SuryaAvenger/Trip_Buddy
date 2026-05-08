@@ -12,6 +12,20 @@ RUN npm ci
 # Copy source code
 COPY . .
 
+# Accept build arguments for environment variables
+ARG VITE_GEMINI_API_KEY
+ARG VITE_GOOGLE_MAPS_API_KEY
+ARG VITE_GOOGLE_CALENDAR_CLIENT_ID
+ARG VITE_GOOGLE_SHEETS_CLIENT_ID
+ARG VITE_GOOGLE_API_SCOPE="https://www.googleapis.com/auth/calendar https://www.googleapis.com/auth/spreadsheets"
+
+# Set environment variables for build
+ENV VITE_GEMINI_API_KEY=$VITE_GEMINI_API_KEY
+ENV VITE_GOOGLE_MAPS_API_KEY=$VITE_GOOGLE_MAPS_API_KEY
+ENV VITE_GOOGLE_CALENDAR_CLIENT_ID=$VITE_GOOGLE_CALENDAR_CLIENT_ID
+ENV VITE_GOOGLE_SHEETS_CLIENT_ID=$VITE_GOOGLE_SHEETS_CLIENT_ID
+ENV VITE_GOOGLE_API_SCOPE=$VITE_GOOGLE_API_SCOPE
+
 # Build the application
 RUN npm run build
 

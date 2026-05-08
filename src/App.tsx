@@ -19,7 +19,7 @@ import { Loader2 } from 'lucide-react'
 function AppContent() {
   const { itinerary, setItinerary } = useTripContext()
   const { generateItinerary, isLoading: isGenerating, error: geminiError } = useGemini()
-  const { optimizeRoute } = useDirections()
+  const { optimizeActivities } = useDirections()
   const [isInitializing, setIsInitializing] = useState(false)
   const [selectedDay, setSelectedDay] = useState(1)
   const [generationProgress, setGenerationProgress] = useState('')
@@ -53,30 +53,39 @@ function AppContent() {
         throw new Error('Failed to generate itinerary')
       }
 
-      // Step 4: Optimize routes for each day
-      setGenerationProgress('Optimizing travel routes...')
-      const optimizedDays = await Promise.all(
-        generatedItinerary.days.map(async (day) => {
-          if (day.activities.length > 1) {
-            const optimizedActivities = await optimizeRoute(day.activities)
-            return { ...day, activities: optimizedActivities }
-          }
-          return day
-        })
-      )
-
-      const finalItinerary = {
-        ...generatedItinerary,
-        days: optimizedDays,
-      }
-
-      setItinerary(finalItinerary)
+      // Step 4: Set the itinerary (skip route optimization due to CORS)
+      // The Gemini-generated itinerary already has optimized routes
+      setGenerationProgress('Finalizing your itinerary...')
+      setItinerary(generatedItinerary)
       setGenerationProgress('Your trip is ready!')
     } catch (error) {
       console.error('Failed to generate itinerary:', error)
-      setGenerationProgress('')
+      
+      // Show user-friendly error message
+      let errorMessage = 'Failed to generate itinerary. Please try again.'
+      
+      if (error instanceof Error) {
+        if (error.message.includes('503') || error.message.includes('high demand')) {
+          errorMessage = 'The AI service is experiencing high demand. Please wait a moment and try again.'
+        } else if (error.message.includes('404')) {
+          errorMessage = 'AI model not available. Please check your configuration.'
+        } else if (error.message.includes('API key')) {
+          errorMessage = 'API key issue. Please check your configuration.'
+        }
+      }
+      
+      setGenerationProgress(errorMessage)
+      
+      // Clear error after 5 seconds
+      setTimeout(() => {
+        setGenerationProgress('')
+        setIsInitializing(false)
+      }, 5000)
     } finally {
-      setIsInitializing(false)
+      // Don't set to false immediately if there's an error message showing
+      if (!generationProgress.includes('Failed') && !generationProgress.includes('experiencing')) {
+        setIsInitializing(false)
+      }
     }
   }
 
@@ -107,7 +116,7 @@ function AppContent() {
     ]
 
     // Optimize route with new order
-    const optimizedActivities = await optimizeRoute(newActivities)
+    const optimizedActivities = await optimizeActivities(newActivities)
 
     const updatedDays = [...itinerary.days]
     updatedDays[dayIndex] = {

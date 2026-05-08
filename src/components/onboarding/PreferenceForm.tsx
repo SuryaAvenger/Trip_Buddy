@@ -51,6 +51,8 @@ const TRANSPORT_MODES: { value: TransportMode; label: string }[] = [
 export function PreferenceForm({ onSubmit, isLoading = false }: PreferenceFormProps) {
   const [currentStep, setCurrentStep] = useState(1)
   const [formData, setFormData] = useState<Partial<TripPreferences>>({
+    travelers: 1,
+    currency: 'USD',
     interests: [],
     dietaryRestrictions: ['none'],
     accommodationType: [],

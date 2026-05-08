@@ -26,10 +26,11 @@ function mapInterestToPlaceType(interest: string): string {
     'beach': 'beach',
     'hiking': 'park',
     'adventure': 'tourist_attraction',
+    'wellness': 'spa',
   }
   
   // Return mapped type or original if not in map
-  return typeMap[interest.toLowerCase()] || interest.toLowerCase().replace(/\s+/g, '_')
+  return typeMap[interest.toLowerCase()] || 'tourist_attraction'
 }
 
 export async function searchNearbyPlaces(

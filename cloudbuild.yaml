@@ -1,11 +1,28 @@
 steps:
-  # Build the container image
+  # Build the container image with build args for environment variables
   - name: 'gcr.io/cloud-builders/docker'
-    args: ['build', '-t', 'gcr.io/$PROJECT_ID/tripbuddy:$COMMIT_SHA', '.']
+    args:
+      - 'build'
+      - '-t'
+      - 'gcr.io/$PROJECT_ID/tripbuddy:$COMMIT_SHA'
+      - '-t'
+      - 'gcr.io/$PROJECT_ID/tripbuddy:latest'
+      - '--build-arg'
+      - 'VITE_GEMINI_API_KEY=${_VITE_GEMINI_API_KEY}'
+      - '--build-arg'
+      - 'VITE_GOOGLE_MAPS_API_KEY=${_VITE_GOOGLE_MAPS_API_KEY}'
+      - '--build-arg'
+      - 'VITE_GOOGLE_CALENDAR_CLIENT_ID=${_VITE_GOOGLE_CALENDAR_CLIENT_ID}'
+      - '--build-arg'
+      - 'VITE_GOOGLE_SHEETS_CLIENT_ID=${_VITE_GOOGLE_SHEETS_CLIENT_ID}'
+      - '.'
   
   # Push the container image to Container Registry
   - name: 'gcr.io/cloud-builders/docker'
     args: ['push', 'gcr.io/$PROJECT_ID/tripbuddy:$COMMIT_SHA']
+  
+  - name: 'gcr.io/cloud-builders/docker'
+    args: ['push', 'gcr.io/$PROJECT_ID/tripbuddy:latest']
   
   # Deploy container image to Cloud Run
   - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
@@ -29,13 +46,27 @@ steps:
       - '1'
       - '--max-instances'
       - '10'
-      - '--set-env-vars'
-      - 'NODE_ENV=production'
+      - '--min-instances'
+      - '0'
+      - '--timeout'
+      - '60s'
+      - '--concurrency'
+      - '80'
 
 images:
   - 'gcr.io/$PROJECT_ID/tripbuddy:$COMMIT_SHA'
+  - 'gcr.io/$PROJECT_ID/tripbuddy:latest'
+
+# Substitutions for environment variables
+# Set these in Cloud Build trigger or pass via command line
+substitutions:
+  _VITE_GEMINI_API_KEY: 'your-gemini-api-key'
+  _VITE_GOOGLE_MAPS_API_KEY: 'your-maps-api-key'
+  _VITE_GOOGLE_CALENDAR_CLIENT_ID: 'your-calendar-client-id'
+  _VITE_GOOGLE_SHEETS_CLIENT_ID: 'your-sheets-client-id'
 
 options:
   logging: CLOUD_LOGGING_ONLY
+  machineType: 'N1_HIGHCPU_8'
 
 # Made with Bob

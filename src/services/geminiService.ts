@@ -77,7 +77,7 @@ export async function parsePreferences(
   await geminiRateLimiter.acquire()
 
   const model = genAI.getGenerativeModel({
-    model: 'gemini-2.0-flash-exp',
+    model: 'gemini-2.5-flash',
     generationConfig: DEFAULT_GEMINI_CONFIG,
   })
 
@@ -114,7 +114,7 @@ export async function* generateItinerary(
   await geminiRateLimiter.acquire()
 
   const model = genAI.getGenerativeModel({
-    model: 'gemini-2.0-flash-exp',
+    model: 'gemini-2.5-flash',
     generationConfig: DEFAULT_GEMINI_CONFIG,
   })
 
@@ -138,9 +138,30 @@ Generate the complete itinerary:`
       yield chunkText
     }
 
+    // Log the accumulated text for debugging
+    console.log('Accumulated text length:', accumulatedText.length)
+    console.log('First 500 chars:', accumulatedText.substring(0, 500))
+    console.log('Last 500 chars:', accumulatedText.substring(accumulatedText.length - 500))
+    
+    // Try to extract and fix JSON
+    let jsonText = accumulatedText
+    
+    // Remove markdown code blocks if present
+    jsonText = jsonText.replace(/```json\s*/g, '').replace(/```\s*$/g, '')
+    
+    // Try to find the JSON object
+    const jsonStart = jsonText.indexOf('{')
+    const jsonEnd = jsonText.lastIndexOf('}')
+    
+    if (jsonStart !== -1 && jsonEnd !== -1) {
+      jsonText = jsonText.substring(jsonStart, jsonEnd + 1)
+    }
+    
+    console.log('Extracted JSON length:', jsonText.length)
+    console.log('Extracted JSON preview:', jsonText.substring(0, 200))
+
     // Parse final accumulated text
-    const sanitized = sanitizeGeminiOutput(accumulatedText)
-    const itinerary = parseGeminiJSON(sanitized, ItinerarySchema)
+    const itinerary = parseGeminiJSON(jsonText, ItinerarySchema)
     return itinerary as Itinerary
   } catch (error) {
     if (error instanceof Error) {
@@ -161,7 +182,7 @@ export async function* refineWithChat(
   await geminiRateLimiter.acquire()
 
   const model = genAI.getGenerativeModel({
-    model: 'gemini-2.0-flash-exp',
+    model: 'gemini-2.5-flash',
     generationConfig: DEFAULT_GEMINI_CONFIG,
   })
 
@@ -226,7 +247,7 @@ export async function generateQuickSuggestion(
   await geminiRateLimiter.acquire()
 
   const model = genAI.getGenerativeModel({
-    model: 'gemini-2.0-flash-exp',
+    model: 'gemini-2.5-flash',
     generationConfig: {
       ...DEFAULT_GEMINI_CONFIG,
       maxOutputTokens: 500,
